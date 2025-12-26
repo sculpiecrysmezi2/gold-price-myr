@@ -1,11 +1,12 @@
 name: Update Gold Price MYR per gram
 
 on:
-permissions:
-  contents: write
   schedule:
     - cron: "0 2 * * *" # Runs daily at 02:00 UTC
   workflow_dispatch: # Allow manual run from Actions tab
+
+permissions:
+  contents: write  # ✅ Required so workflow can push changes
 
 jobs:
   update:
@@ -14,16 +15,25 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq bc
+
       - name: Fetch gold price in MYR per gram
         run: |
           # Get gold price in USD per ounce
           gold_usd=$(curl -s "https://api.exchangerate.host/latest?base=XAU&symbols=USD" | jq -r '.rates.USD')
+          
           # Get USD to MYR exchange rate
           usd_myr=$(curl -s "https://api.exchangerate.host/latest?base=USD&symbols=MYR" | jq -r '.rates.MYR')
+          
           # Calculate gold price in MYR per ounce
           gold_myr_oz=$(echo "$gold_usd * $usd_myr" | bc -l)
+          
           # Convert to MYR per gram (1 oz = 31.1035 g)
           gold_myr_g=$(echo "$gold_myr_oz / 31.1035" | bc -l)
+          
           # Save to CSV
           echo "$gold_myr_g" > gold_myr.csv
 
