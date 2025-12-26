@@ -1,6 +1,8 @@
 name: Update Gold Price MYR per gram
 
 on:
+permissions:
+  contents: write
   schedule:
     - cron: "0 2 * * *" # Runs daily at 02:00 UTC
   workflow_dispatch: # Allow manual run from Actions tab
